@@ -1,0 +1,78 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b8dfbba..81a21a8 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -92,12 +92,14 @@ SET(PYCXX_SOURCE_DIR
+ # used as compiler defines
+ SET(RESOURCEDIR "${CMAKE_INSTALL_DATADIR}")
+ SET(DOCDIR "${CMAKE_INSTALL_DOCDIR}")
++SET(HOMEDIR "${CMAKE_INSTALL_HOMEDIR}")
+ 
+ MESSAGE(STATUS "prefix: ${CMAKE_INSTALL_PREFIX}")
+ MESSAGE(STATUS "datadir: ${CMAKE_INSTALL_DATADIR}")
+ MESSAGE(STATUS "docdir: ${CMAKE_INSTALL_DOCDIR}")
+ MESSAGE(STATUS "includedir: ${CMAKE_INSTALL_INCLUDEDIR}")
+ MESSAGE(STATUS "libdir: ${CMAKE_INSTALL_LIBDIR}")
++MESSAGE(STATUS "homedir: ${CMAKE_INSTALL_HOMEDIR}")
+ 
+ # ==============================================================================
+ # == Win32 is default behaviour use the LibPack copied in Source tree ==========
+diff --git a/src/App/Application.cpp b/src/App/Application.cpp
+index 1f09134..b30b2d1 100644
+--- a/src/App/Application.cpp
++++ b/src/App/Application.cpp
+@@ -531,7 +531,7 @@ std::string Application::getResourceDir()
+     if (dir.isAbsolute())
+         return path;
+     else
+-        return mConfig["AppHomePath"] + path;
++        return mConfig["AppHomePath"];
+ #else
+     return mConfig["AppHomePath"];
+ #endif
+@@ -1137,7 +1137,13 @@ void Application::initTypes(void)
+ void Application::initConfig(int argc, char ** argv)
+ {
+     // find the home path....
++#ifdef HOMEDIR
++    std::string path(HOMEDIR);
++    path.append("/");
++    mConfig["AppHomePath"] = path;
++#else
+     mConfig["AppHomePath"] = FindHomePath(argv[0]);
++#endif
+ 
+     // Version of the application extracted from SubWCRef into src/Build/Version.h
+     // We only set these keys if not yet defined. Therefore it suffices to search
+diff --git a/src/App/CMakeLists.txt b/src/App/CMakeLists.txt
+index 64f0f55..41a14ab 100644
+--- a/src/App/CMakeLists.txt
++++ b/src/App/CMakeLists.txt
+@@ -8,6 +8,10 @@ IF(RESOURCEDIR)
+     add_definitions(-DRESOURCEDIR="${RESOURCEDIR}")
+ ENDIF(RESOURCEDIR)
+ 
++IF(HOMEDIR)
++    add_definitions(-DHOMEDIR="${HOMEDIR}")
++ENDIF(HOMEDIR)
++
+ IF(DOCDIR)
+     add_definitions(-DDOCDIR="${DOCDIR}")
+ ENDIF(DOCDIR)
+diff --git a/src/App/FreeCADInit.py b/src/App/FreeCADInit.py
+index e539e62..efb38a7 100644
+--- a/src/App/FreeCADInit.py
++++ b/src/App/FreeCADInit.py
+@@ -43,10 +43,12 @@ def InitApplications():
+ 	# Checking on FreeCAD module path ++++++++++++++++++++++++++++++++++++++++++
+ 	ModDir = FreeCAD.getHomePath()+'Mod'
+ 	ModDir = os.path.realpath(ModDir)
++	ModDir = '/usr/share/freecad/Mod'
+ 	BinDir = FreeCAD.getHomePath()+'bin'
+ 	BinDir = os.path.realpath(BinDir)
+ 	LibDir = FreeCAD.getHomePath()+'lib'
+ 	LibDir = os.path.realpath(LibDir)
++	LibDir = '/usr/lib/freecad'
+ 	AddPath = FreeCAD.ConfigGet("AdditionalModulePaths").split(";")
+ 	HomeMod = FreeCAD.ConfigGet("UserAppData")+"Mod"
+ 	HomeMod = os.path.realpath(HomeMod)
