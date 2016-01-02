@@ -6,4 +6,4 @@ I had problems with FreeCAD.getHomePath() pointing to /usr instead of /usr/share
 This package is based on the freecad-git AUR package which can be found here:
 https://aur.archlinux.org/packages/freecad-git
 
-As always, this software comes with absoulutely no warranty or whatsoever, use this on your own risk.
+As usual, this software comes with absoulutely no warranty, use this on your own risk.
